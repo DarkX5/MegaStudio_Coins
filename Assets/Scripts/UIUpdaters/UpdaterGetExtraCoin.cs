@@ -15,12 +15,12 @@ public class UpdaterGetExtraCoin : MonoBehaviour
         // set current button text as default
         defaultText = buttonText.text;
 
-        CoinsManager.onGetExtraCoinTimeElapsed += UpdateTextToClaim;
-        CoinsManager.onGetExtraCoinResetTime += UpdateTextToDefault;
+        CoinsManager.onGetFreeCoinTimeElapsed += UpdateTextToClaim;
+        CoinsManager.onGetFreeCoinResetTime += UpdateTextToDefault;
     }
     private void OnDestroy() {
-        CoinsManager.onGetExtraCoinTimeElapsed -= UpdateTextToClaim;
-        CoinsManager.onGetExtraCoinResetTime -= UpdateTextToDefault;
+        CoinsManager.onGetFreeCoinTimeElapsed -= UpdateTextToClaim;
+        CoinsManager.onGetFreeCoinResetTime -= UpdateTextToDefault;
     }
 
     private void UpdateTextToClaim()

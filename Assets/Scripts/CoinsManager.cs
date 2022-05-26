@@ -6,18 +6,21 @@ using UnityEngine;
 
 public class CoinsManager : MainMenu, ICoins
 {
-    public static event Action onGetExtraCoinResetTime = null;
-    public static event Action onGetExtraCoinTimeElapsed = null;
+    public static event Action onGetFreeCoinResetTime = null;
+    public static event Action onGetFreeCoinTimeElapsed = null;
     public static event Action<int> onCoinsValueChanged = null;
     [SerializeField] private int maxCoins = 10;
-    [SerializeField] private int noOfCoinsClaimed = 1;
+    [SerializeField] private int noOfFreeCoinsClaimed = 1;
+    [SerializeField] private int maxExtraCoinsPerDay = 5;
     [SerializeField] private double secondsPerDay = 86400;
     [SerializeField] private string coinsSaveFileName = "Coins.txt";
     [SerializeField] private string freeCoinCollectedTimeFileName = "CollectTime.txt";
+    [SerializeField] private string extraCoinUsesFileName = "ExtraCoinUses.txt";
     [SerializeField] private ResetTime freeCoinsTime = new ResetTime(13, 0, 0);
     private DateTime lastCollectedTime;
     private double timeLeft;
     private bool canClaimFreeCoin = false;
+    private int noOfExtraCoinsClaimed = 0;
 
     private Coroutine ct = null;
     public int coins { get; set; }
@@ -34,7 +37,7 @@ public class CoinsManager : MainMenu, ICoins
         // stop running the coroutine on exit
         StopCoroutine(ct);
 
-        // // use this if above gives errors || breaks
+        // // use this if above fails for any reason
         // StopAllCoroutines();
     }
 
@@ -51,9 +54,24 @@ public class CoinsManager : MainMenu, ICoins
             // get coins value
             coins = int.Parse(tempTxt);
         }
-
         // update any subscribers to saved/starting coin values
         onCoinsValueChanged?.Invoke(coins);
+
+        // load extra coin uses
+        tempTxt = IOUtility.LoadFromDisk(extraCoinUsesFileName);
+
+        // check saved extra coins exist
+        if (tempTxt == string.Empty)
+        {
+            // set coins starting value
+            noOfExtraCoinsClaimed = 0;
+            SaveExtraCoinUses();
+        }
+        else
+        {
+            // get extra coin uses
+            noOfExtraCoinsClaimed = int.Parse(tempTxt);
+        }
 
         // load last collected time
         tempTxt = IOUtility.LoadFromDisk(freeCoinCollectedTimeFileName);
@@ -81,13 +99,16 @@ public class CoinsManager : MainMenu, ICoins
         // check if enough time elapsed for a free coin
         if (elapsedTime >= secondsPerDay)
         {
-            canClaimFreeCoin =  true;
-            // give coin (invoke subscribers)
-            onGetExtraCoinTimeElapsed?.Invoke();
+            canClaimFreeCoin = true;
+            noOfExtraCoinsClaimed = 0;
+            SaveExtraCoinUses();
+
+            // update coins (invoke subscribers)
+            onGetFreeCoinTimeElapsed?.Invoke();
         } else {
             canClaimFreeCoin = false;
         }
-
+        
         ct = StartCoroutine(CheckTimeElapsedCO());
     }
 
@@ -100,7 +121,7 @@ public class CoinsManager : MainMenu, ICoins
         if (canClaimFreeCoin == false) { return; }
 
         // get free coin(s)
-        coins += noOfCoinsClaimed;
+        coins += noOfFreeCoinsClaimed;
 
         // set last collected as today
         lastCollectedTime = new DateTime(TimerUtility.CurrentTime.Year, TimerUtility.CurrentTime.Month, TimerUtility.CurrentTime.Day,
@@ -110,13 +131,26 @@ public class CoinsManager : MainMenu, ICoins
         SaveCoins();
 
         // give coin (invoke subscribers)
-        onGetExtraCoinResetTime?.Invoke();
+        onGetFreeCoinResetTime?.Invoke();
 
         // call coin value change subscribers
         onCoinsValueChanged?.Invoke(coins);
     }
     // called from UI
     public void GetExtraCoins() {
+        // return if all extra coins already collected
+        if (noOfExtraCoinsClaimed >= maxExtraCoinsPerDay) { return; }
+
+        // get extra coin
+        coins += 1;
+        SaveCoins();
+        // update no of extra coin uses
+        noOfExtraCoinsClaimed += 1;
+        SaveExtraCoinUses();
+
+        // update coins (invoke subscribers)
+        onCoinsValueChanged?.Invoke(coins);
+
         Debug.Log("Get Extra Coins");
     }
     // called from UI
@@ -144,6 +178,11 @@ public class CoinsManager : MainMenu, ICoins
     }
 
 #region Helpers
+    private void SaveExtraCoinUses()
+    {
+        // save new coins value
+        IOUtility.SaveToDisk(extraCoinUsesFileName, noOfExtraCoinsClaimed.ToString());
+    }
     private void SaveCoins()
     {
         // save new coins value
