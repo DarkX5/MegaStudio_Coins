@@ -4,5 +4,7 @@ public interface ICoins
     void Initialize();
     void GetFreeCoins();
     void GetExtraCoins();
-    void Gamble();
+    void SpendOneCoin();
+    // void SetGambleCoins(int coinsToAdd);
+    // void Gamble();
 }
