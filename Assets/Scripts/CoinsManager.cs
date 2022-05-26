@@ -139,8 +139,6 @@ public class CoinsManager : MainMenu, ICoins
             noOfExtraCoinsClaimed = 0;
             SaveExtraCoinUses();
             Debug.Log("reset extra time elapsed");
-        } else {
-            canClaimFreeCoin = false;
         }
         
         ct = StartCoroutine(CheckTimeElapsedCO());
@@ -178,6 +176,10 @@ public class CoinsManager : MainMenu, ICoins
         // get extra coin
         coins += 1;
         SaveCoins();
+
+        // set last collected as today
+        lastExtraCollectedTime = new DateTime(TimerUtility.CurrentTime.Year, TimerUtility.CurrentTime.Month, TimerUtility.CurrentTime.Day,
+                                        freeCoinsTime.Hours, freeCoinsTime.Minutes, freeCoinsTime.Seconds);
 
         // update no of extra coin uses
         noOfExtraCoinsClaimed += 1;

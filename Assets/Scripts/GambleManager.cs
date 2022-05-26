@@ -17,12 +17,14 @@ public class GambleManager : MonoBehaviour
     [SerializeField] private int selectedGamble = 0;
     [SerializeField] private int selectedGambleNo = 0;
     [SerializeField] private int currentGambleTurn = 0;
+    [SerializeField] private Canvas gambleCanvas = null;
     
     // Start is called before the first frame update
     void Start()
     {
+        gambleCanvas = GetComponent<Canvas>();
         // start canvas as disabled (keeps script alive)
-        GetComponent<Canvas>().enabled = false;
+        gambleCanvas.enabled = false;
         // gameObject.SetActive(false);
 
         // subscribe to gamble changes
@@ -80,7 +82,13 @@ public class GambleManager : MonoBehaviour
 
         // next gamble turn
         currentGambleTurn += 1;
-        Debug.Log("GambleMan - Gamble" + currentGambleTurn.ToString());
+
+        FinishGamble();
+    }
+    public void FinishGamble()
+    {
+        // update UI (disable after gambleSelectionDisableTime seconds)
+        StartCoroutine(ShowGambleResultCO());
     }
 
     private void SetGamble(int newGambleValue) {
@@ -89,7 +97,8 @@ public class GambleManager : MonoBehaviour
     }
 
     private IEnumerator ShowGambleResultCO() {
-
         yield return new WaitForSecondsRealtime(gambleSelectionDisableTime);
+        // disable canvas after delay (keeps script alive)
+        gambleCanvas.enabled = false;
     }
 }
