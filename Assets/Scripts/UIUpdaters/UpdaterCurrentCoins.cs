@@ -27,10 +27,10 @@ public class UpdaterCurrentCoins : MonoBehaviour
         maxCoins = cMan.MaxCoins;
         currentCoins = cMan.MaxCoins;
 
-        CoinsManager.onCoinsClaimed += CoinsTextUpdate;
+        CoinsManager.onCoinsValueChanged += CoinsTextUpdate;
     }
     private void OnDestroy() {
-        CoinsManager.onCoinsClaimed -= CoinsTextUpdate;
+        CoinsManager.onCoinsValueChanged -= CoinsTextUpdate;
     }
 
     private void CoinsTextUpdate(int newCoinsValue)

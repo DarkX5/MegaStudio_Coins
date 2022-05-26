@@ -8,7 +8,7 @@ public class CoinsManager : MainMenu, ICoins
 {
     public static event Action onGetExtraCoinResetTime = null;
     public static event Action onGetExtraCoinTimeElapsed = null;
-    public static event Action<int> onCoinsClaimed = null;
+    public static event Action<int> onCoinsValueChanged = null;
     [SerializeField] private int maxCoins = 10;
     [SerializeField] private int noOfCoinsClaimed = 1;
     [SerializeField] private double secondsPerDay = 86400;
@@ -46,21 +46,21 @@ public class CoinsManager : MainMenu, ICoins
         if (tempTxt == string.Empty) {
             // set coins starting value
             coins = 5;
-            IOUtility.SaveToDisk(coinsSaveFileName, "5");
+            SaveCoins();
         } else {
             // get coins value
             coins = int.Parse(tempTxt);
         }
 
         // update any subscribers to saved/starting coin values
-        onCoinsClaimed?.Invoke(coins);
+        onCoinsValueChanged?.Invoke(coins);
 
         // load last collected time
         tempTxt = IOUtility.LoadFromDisk(freeCoinCollectedTimeFileName);
         if (tempTxt == string.Empty) {
             lastCollectedTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
             // save last collected time as Beginning-Of-Time
-            IOUtility.SaveToDisk(freeCoinCollectedTimeFileName, lastCollectedTime.ToString());
+            SaveLastCoinCollectionTime();
         } else {
             // load last collected time
             lastCollectedTime = DateTime.Parse(tempTxt);
@@ -69,7 +69,6 @@ public class CoinsManager : MainMenu, ICoins
         // start checking for free coins time
         ct = StartCoroutine(CheckTimeElapsedCO());
     }
-
     private IEnumerator CheckTimeElapsedCO() {
         // check every second if Free Coin time elapsed
         yield return new WaitForSecondsRealtime(1f);
@@ -93,7 +92,8 @@ public class CoinsManager : MainMenu, ICoins
     }
 
     // called from UI
-    public void GetFreeCoins() {
+    public void GetFreeCoins()
+    {
         // do nothing once reaching maxCoins (default: 10)
         if (coins >= maxCoins) { return; }
         // return if coin already collected
@@ -106,24 +106,53 @@ public class CoinsManager : MainMenu, ICoins
         lastCollectedTime = new DateTime(TimerUtility.CurrentTime.Year, TimerUtility.CurrentTime.Month, TimerUtility.CurrentTime.Day,
                                         freeCoinsTime.Hours, freeCoinsTime.Minutes, freeCoinsTime.Seconds);
 
-        // save new last collected time
-        IOUtility.SaveToDisk(freeCoinCollectedTimeFileName, lastCollectedTime.ToString());
-        // save new coins value
-        IOUtility.SaveToDisk(coinsSaveFileName, coins.ToString());
-        
+        SaveLastCoinCollectionTime();
+        SaveCoins();
+
         // give coin (invoke subscribers)
         onGetExtraCoinResetTime?.Invoke();
 
         // call coin value change subscribers
-        onCoinsClaimed?.Invoke(coins);
+        onCoinsValueChanged?.Invoke(coins);
     }
-
     // called from UI
     public void GetExtraCoins() {
         Debug.Log("Get Extra Coins");
     }
     // called from UI
+    public void SpendOneCoin()
+    {
+        // check if enough coins to spend
+        if (coins <= 0)
+        {
+            // set coins value to 0 to make sure it never displays less than 0
+            coins = 0;
+            return;
+        }
+        else
+        {
+            coins -= 1;
+        }
+        SaveCoins();
+
+        onCoinsValueChanged?.Invoke(coins);
+        Debug.Log("SpendOneCoin");
+    }
+    // called from UI
     public void Gamble() {
         Debug.Log("Gamble");
     }
+
+#region Helpers
+    private void SaveCoins()
+    {
+        // save new coins value
+        IOUtility.SaveToDisk(coinsSaveFileName, coins.ToString());
+    }
+    private void SaveLastCoinCollectionTime()
+    {
+        // save new last collected time
+        IOUtility.SaveToDisk(freeCoinCollectedTimeFileName, lastCollectedTime.ToString());
+    }
+#endregion
 }
