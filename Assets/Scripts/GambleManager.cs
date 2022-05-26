@@ -5,20 +5,26 @@ using TMPro;
 
 public class GambleManager : MonoBehaviour
 {
-    // // Action< selectedGamble, selectedGambleNo >
-    // public static event Action<int, int> onGambleNoChosen = null;
+    // Action< selectedGambleNo >
+    public static event Action<int> onGambleNoChosen = null;
     // Action <gambled coins>
     public static event Action<int> onGambleFinished = null;
     [SerializeField] private float gambleSelectionDisableTime = 3f;
-    [SerializeField] private GameResultTypes[] gambleWinList;
+    [SerializeField] private GambleResultTypes[] gambleWinList;
     [SerializeField] private float gambleWinChance = 5f;
-    
+
     [Header("Auto-Set - visible for debug")]
     [SerializeField] private int selectedGamble = 0;
     [SerializeField] private int selectedGambleNo = 0;
     [SerializeField] private int currentGambleTurn = 0;
     [SerializeField] private Canvas gambleCanvas = null;
-    
+
+    public void Init()
+    {
+        // init buttons
+        onGambleNoChosen?.Invoke(0);
+    }
+
     // Start is called before the first frame update
     void Start()
     {
@@ -30,7 +36,8 @@ public class GambleManager : MonoBehaviour
         // subscribe to gamble changes
         UpdaterGambleCanvas.onGambleValueChanged += SetGamble;
     }
-    private void OnDestroy() {
+    private void OnDestroy()
+    {
         // subscribe to gamble changes
         UpdaterGambleCanvas.onGambleValueChanged -= SetGamble;
     }
@@ -45,36 +52,52 @@ public class GambleManager : MonoBehaviour
         // Debug.Log("ChooseGambleNo - " + activatedButtonText.text);
     }
 
-    public void Gamble(int chosenGambleAmount, int chosenGambleNo) {
+    public void Gamble(int chosenGambleAmount, int chosenGambleNo)
+    {
         // avoid IndexOutOfRange errors
-        GameResultTypes grt;
-        if (currentGambleTurn < gambleWinList.Length) {
+        GambleResultTypes grt;
+        if (currentGambleTurn < gambleWinList.Length)
+        {
             grt = gambleWinList[currentGambleTurn];
-        } else {
+        }
+        else
+        {
             grt = gambleWinList[gambleWinList.Length - 1];
         }
 
         int gambleCoinsValue = 0;
         // check victory/loss
-        switch(grt) {
-            case GameResultTypes.Win:
+        switch (grt)
+        {
+            case GambleResultTypes.Win:
                 gambleCoinsValue = chosenGambleAmount;
-                Debug.Log("Win - " + gambleCoinsValue);
+                // call button ui subscribers
+                onGambleNoChosen?.Invoke(chosenGambleNo);
+                // Debug.Log("Win - " + chosenGambleNo);
                 break;
-            case GameResultTypes.Lose:
+            case GambleResultTypes.Lose:
                 gambleCoinsValue = -chosenGambleAmount;
-                Debug.Log("Lose - " + gambleCoinsValue);
+                // call button ui subscribers
+                onGambleNoChosen?.Invoke(GetLostGambleChoice(chosenGambleNo));
+                Debug.Log("Lose - " + chosenGambleNo);
                 break;
-            case GameResultTypes.DefaultChance:
+            case GambleResultTypes.DefaultChance:
                 int random = UnityEngine.Random.Range((int)0, (int)101);
-                if (random > gambleWinChance) {
+                if (random > gambleWinChance)
+                {
                     // lose
                     gambleCoinsValue = -chosenGambleAmount;
-                } else {
+                    // call button ui subscribers
+                    onGambleNoChosen?.Invoke(GetLostGambleChoice(chosenGambleNo));
+                }
+                else
+                {
                     // win
                     gambleCoinsValue = chosenGambleAmount;
+                    // call button ui subscribers
+                    onGambleNoChosen?.Invoke(chosenGambleNo);
                 }
-                Debug.Log("Default - " + gambleCoinsValue);
+                Debug.Log("Default - " + chosenGambleNo);
                 break;
         }
 
@@ -91,14 +114,39 @@ public class GambleManager : MonoBehaviour
         StartCoroutine(ShowGambleResultCO());
     }
 
-    private void SetGamble(int newGambleValue) {
-        Debug.Log("Set Gamble - " + newGambleValue);
+    private void SetGamble(int newGambleValue)
+    {
         selectedGamble = newGambleValue;
     }
 
-    private IEnumerator ShowGambleResultCO() {
+    private IEnumerator ShowGambleResultCO()
+    {
         yield return new WaitForSecondsRealtime(gambleSelectionDisableTime);
         // disable canvas after delay (keeps script alive)
         gambleCanvas.enabled = false;
+    }
+
+    private int GetLostGambleChoice(int chosenGambleNo)
+    {
+        if (chosenGambleNo == 1)
+        {
+            return UnityEngine.Random.Range(chosenGambleNo + 1, 10);
+        }
+        if (chosenGambleNo == 10)
+        {
+            return UnityEngine.Random.Range(1, chosenGambleNo - 1);
+        }
+
+        int random = UnityEngine.Random.Range(0, 2);
+        switch (random)
+        {
+            case 0:
+                return UnityEngine.Random.Range(1, chosenGambleNo - 1);
+            case 1:
+                return UnityEngine.Random.Range(chosenGambleNo + 1, 10);
+        }
+
+        // default value
+        return 1;
     }
 }

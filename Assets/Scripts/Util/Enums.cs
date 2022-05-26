@@ -1,6 +1,6 @@
 using System;
 
 [Serializable]
-public enum GameResultTypes {
+public enum GambleResultTypes {
     Win, Lose, DefaultChance
 }
