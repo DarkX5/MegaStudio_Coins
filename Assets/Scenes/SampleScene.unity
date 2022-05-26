@@ -132,6 +132,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 204157263}
+  - component: {fileID: 204157266}
   - component: {fileID: 204157265}
   - component: {fileID: 204157264}
   m_Layer: 5
@@ -257,6 +258,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 204157262}
   m_CullTransparentMesh: 1
+--- !u!114 &204157266
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 204157262}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a9a1ea3405f77d44a69561a1190aa1d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &358860300
 GameObject:
   m_ObjectHideFlags: 0
@@ -981,8 +994,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b545a123bf3a9bd4c9141a70c5c8d63d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  blockingWaitPopup: {fileID: 0}
   maxCoins: 10
+  noOfCoinsClaimed: 1
   secondsPerDay: 86400
+  coinsSaveFileName: Coins.txt
+  freeCoinCollectedTimeFileName: CollectTime.txt
+  freeCoinsTime:
+    hours: 13
+    minutes: 0
+    seconds: 0
 --- !u!4 &1530028976
 Transform:
   m_ObjectHideFlags: 0
@@ -1083,6 +1104,18 @@ MonoBehaviour:
       - m_Target: {fileID: 828162045}
         m_TargetAssemblyTypeName: MainMenu, Assembly-CSharp
         m_MethodName: Action_ClaimFreeCoin
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 1530028975}
+        m_TargetAssemblyTypeName: CoinsManager, Assembly-CSharp
+        m_MethodName: GetFreeCoins
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1669,10 +1702,6 @@ PrefabInstance:
     - target: {fileID: 2300478256148993879, guid: 7d241ee83800a4c32a0751fe281380ec, type: 3}
       propertyPath: m_Name
       value: FreemiumBar
-      objectReference: {fileID: 0}
-    - target: {fileID: 2300478256148993879, guid: 7d241ee83800a4c32a0751fe281380ec, type: 3}
-      propertyPath: m_IsActive
-      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7d241ee83800a4c32a0751fe281380ec, type: 3}
