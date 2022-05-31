@@ -2,6 +2,12 @@ using System;
 using System.IO;
 using UnityEngine;
 
+[Serializable]
+public class SaveClass {
+    public DateTime lasColeectedFreeCoins;
+    public int coins;
+    public DateTime lasColeectedExtraCoins;
+}
 public static class IOUtility
 {
     private static string saveDirName = "_Saves";

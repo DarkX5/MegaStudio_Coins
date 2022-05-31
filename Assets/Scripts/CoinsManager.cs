@@ -36,17 +36,21 @@ public class CoinsManager : MainMenu, ICoins
     {
         // start with a small delay to wait for everything else to load
         Invoke("Initialize", 1f);
+    }
+    private void OnDestroy()
+    {
+
+        // stop running the coroutine on exit
+        StopAllCoroutines();
+    }
+    private void OnEnable() {
 
         // GambleManager.onGambleNoChosen += Gamble;
         GambleManager.onGambleFinished += SetGambleCoins;
     }
-    private void OnDestroy()
-    {
+    private void OnDisable() {
         // GambleManager.onGambleNoChosen -= Gamble;
         GambleManager.onGambleFinished -= SetGambleCoins;
-
-        // stop running the coroutine on exit
-        StopAllCoroutines();
     }
 
     public void Initialize() {
@@ -115,11 +119,11 @@ public class CoinsManager : MainMenu, ICoins
         // check every second if Free Coin time elapsed
         yield return new WaitForSecondsRealtime(1f);
 
-        var cTime = TimerUtility.CurrentTime;
-
+        var cTime = TimerUtility.CurrentTime; // 31.05.22 10.00 UTC
+        
         // get elapsed time since yesterday @freeCoinsTime (default: 13:00:00)
-        double elapsedTime = (cTime - lastCollectedTime).TotalSeconds;
-        double elapsedExtraTime = (cTime - lastExtraCollectedTime).TotalSeconds;
+        double elapsedTime = (cTime - lastCollectedTime).TotalSeconds; //lastCollectedTime = 31.05.22 13:00 UTC -> -10800
+        double elapsedExtraTime = (cTime - lastExtraCollectedTime).TotalSeconds; // 
 
         // check if enough time elapsed for a free coin
         if (elapsedTime > secondsPerDay)
@@ -153,11 +157,16 @@ public class CoinsManager : MainMenu, ICoins
         if (canClaimFreeCoin == false) { return; }
 
         // get free coin(s)
-        coins += noOfFreeCoinsClaimed;
+        coins += noOfFreeCoinsClaimed; // coins = 5 + 1
 
-        // set last collected as today
+        // set last collected as today => lastCollectedTime = 31.05.22 13:00
         lastCollectedTime = new DateTime(TimerUtility.CurrentTime.Year, TimerUtility.CurrentTime.Month, TimerUtility.CurrentTime.Day,
                                         freeCoinsTime.Hours, freeCoinsTime.Minutes, freeCoinsTime.Seconds);
+
+        var cTime = TimerUtility.CurrentTime; // 31.05.22 10.00 UTC
+        if (cTime < lastCollectedTime) {
+            lastCollectedTime = lastCollectedTime.AddDays(-1);
+        }
 
         SaveLastCoinCollectionTime();
         SaveCoins();
